@@ -76,7 +76,26 @@ async function clipYouTubeVideo({ url, startTime, endTime }) {
     });
   });
 }
+const getThumbnailUrl = async (videoId) => {
+  const info = await ytdl.getInfo(videoId);
+  const thumbnails = info.videoDetails.thumbnails;
+  const jpegThumb = thumbnails.find(t => t.url.endsWith('.jpg')) || thumbnails.at(-1);
+  return jpegThumb?.url || null;
+};
 
+async function downloadThumbnail(videoId , savePath ='./thumbnails'){
+  console.log("~function hit for downloading thumbnail")
+  const url = await getThumbnailUrl(videoId);
+  console.log("Thumbnail URL:", url);
+  const response = await axios.get(url , {responseType : 'arraybuffer'});
+  console.log("Thumbnail downloaded from:", url , "response" , response);
+  const fileName = `thumbnail-${Date.now()}.jpg`;
+  const fullPath = path.join(savePath , fileName);
+  fs.mkdirSync(savePath , {recursive: true});
+  fs.writeFileSync(fullPath , response.data);
+  return fullPath ;
+}
 module.exports = {
   clipYouTubeVideo,
+  downloadThumbnail
 };

@@ -36,7 +36,7 @@ document.getElementById('startBtn').addEventListener('click', async () => {
   }
 
   resetButton();
-
+  
   function resetButton() {
     setTimeout(() => {
       button.disabled = false;
@@ -99,5 +99,19 @@ document.addEventListener('keydown', function(event) {
   if (event.key === 'Enter' && !event.shiftKey) {
     event.preventDefault();
     document.getElementById('startBtn').click();
+  }
+});
+
+document.getElementById('downloadThumbnailBtn').addEventListener('click',async() => {
+  const url = document.getElementById('youtubeUrl').value.trim();
+  if(!url.includes('youtube.com') && !url.includes('youtu.be')){
+    showStatus("Please enter a valid Youtube link." , 'error');
+    return ;
+  }
+  const result = await window.clipper.downloadThumbnail(url);
+  if (result.success) {
+    document.getElementById('statusMessage').textContent = `Thumbnail saved at: ${result.path}`;
+  } else {
+    document.getElementById('statusMessage').textContent = `Error: ${result.error}`;
   }
 });
