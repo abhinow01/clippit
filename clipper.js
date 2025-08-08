@@ -97,5 +97,6 @@ async function downloadThumbnail(videoId , savePath ='./thumbnails'){
 }
 module.exports = {
   clipYouTubeVideo,
+  getThumbnailUrl,
   downloadThumbnail
 };

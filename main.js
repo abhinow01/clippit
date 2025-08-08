@@ -1,6 +1,6 @@
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
-const { clipYouTubeVideo , downloadThumbnail} = require('./clipper');
+const { clipYouTubeVideo , getThumbnailUrl} = require('./clipper');
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -34,12 +34,12 @@ ipcMain.handle('clip-video', async (event, {url , startTime , endTime }) => {
   }
 });
 
-ipcMain.handle('download-thumbnail',async (event , {videoUrl}) =>{
-  console.log("Downloading thumbnail for:", videoUrl);
+ipcMain.handle('get-thumbnailurl',async (event , {videoId}) =>{
+  console.log("video Id:", videoId);
   try{
-    const thumbnailPath = await downloadThumbnail(videoUrl);
-    console.log("Thumbnail saved at:", thumbnailPath);
-    return { success: true, path: thumbnailPath };
+    const thumbnailUrl = await getThumbnailUrl(videoId);
+    console.log("Thumbnail saved at:", thumbnailUrl);
+    return { success: true, path: thumbnailUrl };
   }catch (err) {
     return { success: false, error: err.message };
   }

@@ -53,7 +53,11 @@ document.getElementById('startBtn').addEventListener('click', async () => {
     }, 4000);
   }
 });
-
+function extractVideoId(url){
+  const regex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+  const match = url.match(regex);
+  return match ? match[1] : null;
+}
 // Add input validation and formatting
 document.getElementById('startTime').addEventListener('input', formatTimeInput);
 document.getElementById('endTime').addEventListener('input', formatTimeInput);
@@ -102,16 +106,45 @@ document.addEventListener('keydown', function(event) {
   }
 });
 
-document.getElementById('downloadThumbnailBtn').addEventListener('click',async() => {
+document.getElementById('downloadThumbnailBtn').addEventListener('click', async () => {
   const url = document.getElementById('youtubeUrl').value.trim();
-  if(!url.includes('youtube.com') && !url.includes('youtu.be')){
-    showStatus("Please enter a valid Youtube link." , 'error');
-    return ;
+  if (!url.includes('youtube.com') && !url.includes('youtu.be')) {
+    showStatus("Please enter a valid YouTube link.", 'error');
+    return;
   }
-  const result = await window.clipper.downloadThumbnail(url);
-  if (result.success) {
-    document.getElementById('statusMessage').textContent = `Thumbnail saved at: ${result.path}`;
-  } else {
-    document.getElementById('statusMessage').textContent = `Error: ${result.error}`;
+
+  const videoId = extractVideoId(url);
+  if (!videoId) {
+    showStatus("Invalid YouTube URL.", 'error');
+    return;
   }
+  const result = await window.clipper.getThumbnailUrl(videoId);
+  if (!result.success || !result.path) {
+    console.log("Thumbnail URL:", result.path);
+  }
+  const imageUrl = result.path;
+  console.log("Thumbnail URL:", imageUrl);
+  const img = new Image();
+  img.crossOrigin = 'anonymous'; // important to avoid CORS issues
+
+  img.onload = function () {
+    const canvas = document.createElement('canvas');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    canvas.getContext('2d').drawImage(img, 0, 0);
+    
+    const dataUrl = canvas.toDataURL('image/jpeg');
+    const a = document.createElement('a');
+    a.href = dataUrl;
+    a.download = `thumbnail-${videoId}.jpg`;
+    a.click();
+    // showStatus("Thumbnail downloaded successfully!", 'success');
+  };
+
+  // img.onerror = function () {
+  //   // showStatus("Failed to load image due to CORS or invalid URL.", 'error');
+  // };
+
+  img.src = imageUrl;
 });
+
